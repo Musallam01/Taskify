@@ -1,10 +1,14 @@
+//React Native Imports
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
+
+//Constants Imports
 import { COLORS } from '../constants';
+
 
 const LoginScreen = ({ navigation }) => {
   const [text, onChangeText] = useState('');
-  const [isManager, setIsManager] = useState(false);
+  const [isManager, setIsManager] = useState(true);
 
   const handleManagerPress = () => {
     setIsManager(true);
@@ -16,9 +20,9 @@ const LoginScreen = ({ navigation }) => {
 
   const handleSignInPress = () => {
     if (isManager) {
-      navigation.replace('ManagerStack');
+      navigation.navigate('ManagerStack');
     } else {
-      navigation.replace('EmployeeStack');
+      navigation.navigate('EmployeeStack');
     }
   };
 
@@ -92,7 +96,9 @@ const styles = StyleSheet.create({
   },
   selectedButton:{
     backgroundColor: COLORS.PRIMARY_COLOR_2,
-    borderRadius: 20
+    borderRadius: 20,
+    width: 150,
+    alignItems: "center"
   },
   buttonText: {
     color: '#000',
