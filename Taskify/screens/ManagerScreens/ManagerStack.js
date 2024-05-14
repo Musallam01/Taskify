@@ -1,6 +1,6 @@
 //React Native Imports
 import React from 'react'
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, Platform } from 'react-native';
 
 //React Navigation Imports
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -25,7 +25,7 @@ const ManagerHomeScreen = () => {
         tabBarIcon: ({ focused, color, size }) => {
           let iconSource;
 
-          if (route.name === 'Employee Home') {
+          if (route.name === 'Manager Home') {
             iconSource = focused ? require('../../assets/icons/iconHomeSelected.png') : require('../../assets/icons/iconHome.png');
             iconSize = 35;
           } else if (route.name === 'Add Task') {
@@ -43,12 +43,14 @@ const ManagerHomeScreen = () => {
         tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: COLORS.SECONDARY_COLOR_2,
-          height: "7%",
+          height: Platform.OS == "android" ? "7%" : "12%",
         },
       })}
     >
-      <Tab.Screen name="Employee Home" component={ManagerHome} />
-      <Tab.Screen name="Add Task" component={AddTaskScreen} />
+      <Tab.Screen name="Manager Home" component={ManagerHome} />
+      <Tab.Group mode="modal">
+        <Tab.Screen name="Add Task" component={AddTaskScreen} options={{ presentation: 'modal' }}/>
+      </Tab.Group>
       <Tab.Screen name="Employee Calendar" component={ManagerCalendar} />
     </Tab.Navigator>
   );

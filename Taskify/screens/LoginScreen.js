@@ -20,9 +20,9 @@ const LoginScreen = ({ navigation }) => {
 
   const handleSignInPress = () => {
     if (isManager) {
-      navigation.navigate('ManagerStack');
+      navigation.replace('ManagerStack');
     } else {
-      navigation.navigate('EmployeeStack');
+      navigation.replace('EmployeeStack');
     }
   };
 

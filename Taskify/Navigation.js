@@ -6,16 +6,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 //Auth Screen Imports
-import LoginScreen from '../Taskify/screens/LoginScreen';
+import LoginScreen from './screens/LoginScreen';
 
 //Manager Screens Imports
 import ManagerHomeScreen from './screens/ManagerScreens/ManagerStack';
 import ManagerHome from './screens/ManagerScreens/ManagerHomeScreen';
 import ManagerCalendar from './screens/ManagerScreens/ManagerCalendarScreen';
 import AddTaskScreen from './screens/ManagerScreens/ManagerAddTaskScreen';
+import ManagerStack from './screens/ManagerScreens/ManagerStack'
 
 //Employee Screens Imports
-import EmployeeHomeScreen from './screens/EmployeeScreens/EmployeeStack';
+// import EmployeeHomeScreen from './screens/EmployeeScreens/EmployeeStack';
+import EmployeeStack from './screens/EmployeeScreens/EmployeeStack'
 
 
 const Stack = createStackNavigator();
@@ -25,11 +27,14 @@ const Navigation = () => {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="ManagerStack" component={ManagerHomeScreen} />
-        <Stack.Screen name="EmployeeStack" component={EmployeeHomeScreen} />
+        <Stack.Screen name="ManagerHomeScreen" component={ManagerHomeScreen} />
+        <Stack.Screen name="ManagerStack" component={ManagerStack} />
+        <Stack.Screen name="EmployeeStack" component={EmployeeStack} />
         <Stack.Screen name="ManagerHome" component={ManagerHome} />
         <Stack.Screen name="ManagerCalendar" component={ManagerCalendar} />
-        <Stack.Screen name="AddTask" component={AddTaskScreen} />
+        <Stack.Group screenOptions={{ presentation: 'modal' }}>
+          <Stack.Screen name="AddTask" component={AddTaskScreen}/>
+        </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>
   );
