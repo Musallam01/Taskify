@@ -1,12 +1,8 @@
-//React Native Imports
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
-
-//Constants Imports
 import { COLORS } from '../constants';
 
-
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, handleUserRole }) => {
   const [text, onChangeText] = useState('');
   const [isManager, setIsManager] = useState(true);
 
@@ -19,28 +15,22 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleSignInPress = () => {
-    if (isManager) {
-      navigation.replace('ManagerStack');
-    } else {
-      navigation.replace('EmployeeStack');
-    }
+    handleUserRole(isManager ? 'manager' : 'employee');
   };
 
   return (
     <View style={styles.container}>
-
       <Image source={require('../assets/logoFullRow.png')} style={styles.logo} />
-
       <View style={styles.mainTextView}>
         <Text style={styles.welcomeText}>Welcome</Text>
-        <Text style={styles.mainTextSecondPart}><Text style={styles.signInText}>Sign In</Text> Please</Text>
+        <Text style={styles.mainTextSecondPart}>
+          <Text style={styles.signInText}>Sign In</Text> Please
+        </Text>
       </View>
-
       <View style={styles.bottomHalfView}>
         <View style={styles.areYouView}>
           <Text style={styles.areYouText}>Are you</Text>
         </View>
-
         <View style={styles.chooseUserView}>
           <TouchableOpacity
             style={[styles.button, isManager ? styles.selectedButton : null]}
@@ -55,7 +45,6 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.buttonText}>Employee</Text>
           </TouchableOpacity>
         </View>
-
         <View style={styles.employeeIDView}>
           <TextInput
             style={styles.textInputID}
@@ -63,7 +52,6 @@ const LoginScreen = ({ navigation }) => {
             onChangeText={onChangeText}
           />
         </View>
-
         <View style={styles.passwordView}>
           <TextInput
             style={styles.textInputPassword}
@@ -72,7 +60,6 @@ const LoginScreen = ({ navigation }) => {
             secureTextEntry
           />
         </View>
-
         <TouchableOpacity style={styles.signInButton} onPress={handleSignInPress}>
           <Text style={styles.signInButtonText}>Sign In</Text>
         </TouchableOpacity>
