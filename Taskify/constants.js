@@ -4,3 +4,5 @@ export const COLORS = {
     SECONDARY_COLOR_1: '#FFFFFF',
     SECONDARY_COLOR_2: '#D9D9D9',
   };
+
+  export const baseURL = 'http://localhost:5000';

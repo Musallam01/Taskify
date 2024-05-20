@@ -1,24 +1,54 @@
+// React Imports
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
-import { COLORS } from '../constants';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, AsyncStorage, TouchableWithoutFeedback, Keyboard } from 'react-native';
+
+// Axios Imports
+import axios from 'axios';
+
+// Constants
+import { baseURL, COLORS } from '../constants';
 
 const LoginScreen = ({ navigation, handleUserRole }) => {
-  const [text, onChangeText] = useState('');
-  const [isManager, setIsManager] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [userRole, setUserRole] = useState('manager'); // Default to manager
+
+  const handleUsernameChange = (text) => {
+    setUsername(text);
+  };
+
+  const handlePasswordChange = (text) => {
+    setPassword(text);
+  };
 
   const handleManagerPress = () => {
-    setIsManager(true);
+    setUserRole('manager');
   };
 
   const handleEmployeePress = () => {
-    setIsManager(false);
+    setUserRole('employee');
   };
 
-  const handleSignInPress = () => {
-    handleUserRole(isManager ? 'manager' : 'employee');
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
+  const handleSignInPress = async () => {
+    try {
+      const response = await axios.post(`${baseURL}/login`, { username, password });
+      const { token, role } = response.data;
+      // Store token and role in AsyncStorage for future use
+      await AsyncStorage.setItem('token', token);
+      handleUserRole(role);
+    } catch (error) {
+      console.error('Login error:', error);
+      // Display error message to the user
+      alert('Invalid credentials or server error. Please try again.');
+    }
   };
 
   return (
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
     <View style={styles.container}>
       <Image source={require('../assets/logoFullRow.png')} style={styles.logo} />
       <View style={styles.mainTextView}>
@@ -33,13 +63,13 @@ const LoginScreen = ({ navigation, handleUserRole }) => {
         </View>
         <View style={styles.chooseUserView}>
           <TouchableOpacity
-            style={[styles.button, isManager ? styles.selectedButton : null]}
+            style={[styles.button, userRole === 'manager' ? styles.selectedButton : null]}
             onPress={handleManagerPress}
           >
             <Text style={styles.buttonText}>Manager</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, !isManager ? styles.selectedButton : null]}
+            style={[styles.button, userRole === 'employee' ? styles.selectedButton : null]}
             onPress={handleEmployeePress}
           >
             <Text style={styles.buttonText}>Employee</Text>
@@ -49,14 +79,14 @@ const LoginScreen = ({ navigation, handleUserRole }) => {
           <TextInput
             style={styles.textInputID}
             placeholder='Employee ID'
-            onChangeText={onChangeText}
+            onChangeText={handleUsernameChange}
           />
         </View>
         <View style={styles.passwordView}>
           <TextInput
             style={styles.textInputPassword}
             placeholder='Password'
-            onChangeText={onChangeText}
+            onChangeText={handlePasswordChange}
             secureTextEntry
           />
         </View>
@@ -65,6 +95,7 @@ const LoginScreen = ({ navigation, handleUserRole }) => {
         </TouchableOpacity>
       </View>
     </View>
+    </TouchableWithoutFeedback>
   );
 };
 

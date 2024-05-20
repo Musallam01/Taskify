@@ -6,9 +6,9 @@ import { Image, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 //Screen Imports
-import ManagerHome from './ManagerHomeScreen';
+import ManagerHome from './ManagerHome';
 import AddTaskScreen from './ManagerAddTaskScreen';
-import ManagerCalendar from './ManagerCalendarScreen';
+import ManagerCalendar from './ManagerCalendar';
 
 //Constants Imports
 import {COLORS} from "../../constants"
