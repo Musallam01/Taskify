@@ -46,17 +46,26 @@ app.post('/register', async (req, res) => {
 });
 
 // Login Route
+// Login Route
 app.post('/login', async (req, res) => {
   try {
+    console.log('Received login request with data:', req.body);
     const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).send('Missing username or password');
+    }
+
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).send('Invalid credentials');
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).send('Invalid credentials');
     }
+
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
     res.json({ token, role: user.role });
   } catch (error) {
