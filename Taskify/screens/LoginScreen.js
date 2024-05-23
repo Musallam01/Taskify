@@ -1,13 +1,41 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, AsyncStorage, TouchableWithoutFeedback, Keyboard, StatusBar, Alert } from 'react-native';
+//React imports
+import React, { useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, TouchableWithoutFeedback, Keyboard, StatusBar, Alert } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+//Axios imports
 import axios from 'axios';
+
+//Constants imports
 import { baseURL, COLORS } from '../constants';
+
+//Toast imports
+import Toast from 'react-native-toast-message';
 
 const LoginScreen = ({ navigation, handleUserRole }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [userRole, setUserRole] = useState('manager');
+  const [errorText, setErrorText] = useState('');
+  const [toastType, setToastType] = useState('');
+
+  const showErrorToast = () => {
+    Toast.show({
+      type: 'error',
+      text1: 'Wrong ID or Password, please try again',
+      position: 'bottom'
+    });
+  }
+
+  const showSuccessToast = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Logged in successfully',
+      position: 'bottom',
+      text1Style: {}
+    });
+  }
 
   const handleUsernameChange = (text) => {
     setUsername(text);
@@ -29,23 +57,34 @@ const LoginScreen = ({ navigation, handleUserRole }) => {
     Keyboard.dismiss();
   };
 
+  const handleSuccessToast = () => {
+    setErrorText('Successful login');
+    setToastType('success');
+    showToast();
+  };
+
+  const handleErrorToast = () => {
+    setErrorText('Wrong ID or password, please try again');
+    setToastType('error');
+    showToast();
+  };
+
   const handleSignInPress = async () => {
     try {
       console.log('Attempting to login with:', { username, password });
-
+  
       const response = await axios.post(`${baseURL}/login`, { username, password });
       const { token, role } = response.data;
       
-      // Store token and role in AsyncStorage for future use
+      console.log(token);
       await AsyncStorage.setItem('token', token);
       handleUserRole(role);
-      Alert.alert('Success', 'Login successful!');
+      showSuccessToast();
     } catch (error) {
       console.error('Login error:', error);
-      // Display error message to the user
-      Alert.alert('Error', 'Invalid credentials or server error. Please try again.');
+      showErrorToast();
     }
-  };
+  };  
 
   return (
     <KeyboardAwareScrollView 
@@ -124,17 +163,21 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 10,
     borderRadius: 5,
+    width: 150,
+    alignItems: "center"
   },
   selectedButton: {
     backgroundColor: COLORS.PRIMARY_COLOR_2,
     borderRadius: 20,
     width: 150,
     alignItems: "center",
+    padding: 10,
   },
   buttonText: {
     color: '#000',
     fontSize: 25,
     fontWeight: "400",
+    color: COLORS.SECONDARY_COLOR_1
   },
   logo: {
     height: 120,
@@ -177,6 +220,7 @@ const styles = StyleSheet.create({
   areYouText: {
     fontSize: 25,
     fontWeight: "500",
+    color: COLORS.SECONDARY_COLOR_1
   },
   employeeIDView: {
     backgroundColor: COLORS.SECONDARY_COLOR_1,
@@ -217,6 +261,7 @@ const styles = StyleSheet.create({
   signInButtonText: {
     fontSize: 22,
     fontWeight: 'bold',
+    color: COLORS.SECONDARY_COLOR_1
   },
 });
 

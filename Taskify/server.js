@@ -25,6 +25,8 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Import User Model
 const User = require('./models/User');
+const Task = require('./models/Task'); // Import Task Model
+const Reward = require('./models/Reward'); // Import Reward Model
 
 // Routes
 app.get('/', (req, res) => {
@@ -46,17 +48,20 @@ app.post('/register', async (req, res) => {
 });
 
 // Login Route
-// Login Route
 app.post('/login', async (req, res) => {
   try {
     console.log('Received login request with data:', req.body);
     const { username, password } = req.body;
-
     if (!username || !password) {
       return res.status(400).send('Missing username or password');
     }
 
+    const users = await User.find();
+    console.log(users);
+
     const user = await User.findOne({ username });
+
+    console.log(user, ' User Response');
     if (!user) {
       return res.status(400).send('Invalid credentials');
     }
@@ -67,10 +72,38 @@ app.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
+    console.log(token);
     res.json({ token, role: user.role });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).send('Error logging in user');
+  }
+});
+
+// Create Reward Route
+app.post('/rewards', async (req, res) => {
+  try {
+    const { amount, managerId, employeeId, taskId } = req.body;
+    const reward = new Reward({ amount, manager: managerId, employee: employeeId, task: taskId });
+    await reward.save();
+    res.status(201).send('Reward created successfully');
+  } catch (error) {
+    console.error('Error creating reward:', error);
+    res.status(500).send('Error creating reward');
+  }
+});
+
+// Get Rewards Route
+app.get('/rewards', async (req, res) => {
+  try {
+    const rewards = await Reward.find()
+      .populate('manager')
+      .populate('employee')
+      .populate('task');
+    res.json(rewards);
+  } catch (error) {
+    console.error('Error fetching rewards:', error);
+    res.status(500).send('Error fetching rewards');
   }
 });
 
