@@ -58,7 +58,9 @@ const Navigation = () => {
               <Stack.Screen name="EmployeeHome" component={EmployeeHome} />
               <Stack.Screen name="EmployeeEarnings" component={EmployeeEarnings} />
               <Stack.Screen name="EmployeeCalendar" component={EmployeeCalendar} />
-              <Stack.Screen name="EmployeeCurrentTask" component={EmployeeCurrentTask} />
+              <Stack.Group screenOptions={{ presentation: 'modal' }}>
+                <Stack.Screen name="EmployeeCurrentTask" component={EmployeeCurrentTask} />
+              </Stack.Group>
             </>
           )
         ) : (

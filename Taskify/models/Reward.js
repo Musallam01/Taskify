@@ -20,7 +20,11 @@ const rewardSchema = new mongoose.Schema({
     ref: 'Task',
     required: true,
   },
-}, { timestamps: true });
+  dateIssued: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 const Reward = mongoose.model('Reward', rewardSchema);
 

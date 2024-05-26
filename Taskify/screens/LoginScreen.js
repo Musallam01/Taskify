@@ -1,24 +1,22 @@
-//React imports
-import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, TouchableWithoutFeedback, Keyboard, StatusBar, Alert } from 'react-native';
+// React imports
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, TouchableWithoutFeedback, Keyboard, StatusBar } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-//Axios imports
+// Axios imports
 import axios from 'axios';
 
-//Constants imports
+// Constants imports
 import { baseURL, COLORS } from '../constants';
 
-//Toast imports
+// Toast imports
 import Toast from 'react-native-toast-message';
 
 const LoginScreen = ({ navigation, handleUserRole }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [userRole, setUserRole] = useState('manager');
-  const [errorText, setErrorText] = useState('');
-  const [toastType, setToastType] = useState('');
 
   const showErrorToast = () => {
     Toast.show({
@@ -33,7 +31,6 @@ const LoginScreen = ({ navigation, handleUserRole }) => {
       type: 'success',
       text1: 'Logged in successfully',
       position: 'bottom',
-      text1Style: {}
     });
   }
 
@@ -57,38 +54,27 @@ const LoginScreen = ({ navigation, handleUserRole }) => {
     Keyboard.dismiss();
   };
 
-  const handleSuccessToast = () => {
-    setErrorText('Successful login');
-    setToastType('success');
-    showToast();
-  };
-
-  const handleErrorToast = () => {
-    setErrorText('Wrong ID or password, please try again');
-    setToastType('error');
-    showToast();
-  };
-
   const handleSignInPress = async () => {
     try {
-      console.log('Attempting to login with:', { username, password });
+      const lowerCaseUsername = username.toLowerCase(); // Convert username to lowercase
+      console.log('Attempting to login with:', { username: lowerCaseUsername, password });
   
-      const response = await axios.post(`${baseURL}/login`, { username, password });
-      const { token, role } = response.data;
+      const response = await axios.post(`${baseURL}/login`, { username: lowerCaseUsername, password });
+      const { token, role, user } = response.data;
       
-      console.log(token);
       await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('user', JSON.stringify(user));
       handleUserRole(role);
       showSuccessToast();
     } catch (error) {
       console.error('Login error:', error);
       showErrorToast();
     }
-  };  
+  };
 
   return (
     <KeyboardAwareScrollView 
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={styles.container}
       enableOnAndroid={true}
       extraScrollHeight={-30}
       canCancelContentTouches={false}
@@ -180,9 +166,10 @@ const styles = StyleSheet.create({
     color: COLORS.SECONDARY_COLOR_1
   },
   logo: {
-    height: 120,
-    width: 240,
+    height: 100,
+    width: 200,
     marginBottom: 75,
+    resizeMode: 'center'
   },
   mainTextView: {
     alignItems: 'flex-start',

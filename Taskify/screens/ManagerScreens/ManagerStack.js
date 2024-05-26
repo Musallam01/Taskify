@@ -29,9 +29,9 @@ const ManagerHomeScreen = () => {
             iconSource = focused ? require('../../assets/icons/iconHomeSelected.png') : require('../../assets/icons/iconHome.png');
             iconSize = 35;
           } else if (route.name === 'Add Task') {
-            iconSource = focused ? require('../../assets/icons/iconTaskSelected.png') : require('../../assets/icons/iconTask.png');
+            iconSource = focused ? require('../../assets/icons/iconAddTaskSelected.png') : require('../../assets/icons/iconAddTask.png');
             iconSize = 45;
-          } else if (route.name === 'Employee Calendar') {
+          } else if (route.name === 'Manager Calendar') {
             iconSource = focused ? require('../../assets/icons/iconCalendarSelected.png') : require('../../assets/icons/iconCalendar.png');
             iconSize = 35;
           }
@@ -43,7 +43,7 @@ const ManagerHomeScreen = () => {
         tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: COLORS.SECONDARY_COLOR_2,
-          height: Platform.OS == "android" ? "7%" : "12%",
+          height: Platform.OS == "android" ? "7%" : "11%",
         },
       })}
     >
@@ -51,7 +51,7 @@ const ManagerHomeScreen = () => {
       <Tab.Group mode="modal">
         <Tab.Screen name="Add Task" component={AddTaskScreen} options={{ presentation: 'modal' }}/>
       </Tab.Group>
-      <Tab.Screen name="Employee Calendar" component={ManagerCalendar} />
+      <Tab.Screen name="Manager Calendar" component={ManagerCalendar} />
     </Tab.Navigator>
   );
 };

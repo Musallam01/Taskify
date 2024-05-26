@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const taskSchema = new mongoose.Schema({
-  taskTitle: {
+  title: {
     type: String,
     required: true
   },
@@ -15,25 +15,39 @@ const taskSchema = new mongoose.Schema({
   },
   taskType: {
     type: String,
-    enum: ['installation', 'fix'],
+    enum: ['Installation', 'Fix'],
     required: true
   },
-  chooseEmployee: {
-    type: String,
-    enum: ['specify later'],
+  assignedUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
+  },
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
-  chooseDueDate: {
+  dueDate: {
     type: Date,
     required: true
   },
-  taskDescription: {
+  creationDate: {
+    type: Date,
+    default: Date.now
+  },
+  description: {
     type: String,
     required: true
   },
   requiredFees: {
     type: Number,
     required: true
+  },
+  status: {
+    type: String,
+    enum: ['in progress', 'finished', 'remaining'],
+    default: 'remaining'
   }
 });
 
