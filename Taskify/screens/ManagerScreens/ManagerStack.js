@@ -13,10 +13,25 @@ import ManagerCalendar from './ManagerCalendar';
 //Constants Imports
 import {COLORS} from "../../constants"
 
+//AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const Tab = createBottomTabNavigator();
 
-const ManagerHomeScreen = () => {
+const ManagerHomeScreen = ({route}) => {
+
+  const { handleUserRole } = route.params;
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('user');
+      handleUserRole(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <Tab.Navigator 
       initialRouteName="Employee Home" 
@@ -47,11 +62,11 @@ const ManagerHomeScreen = () => {
         },
       })}
     >
-      <Tab.Screen name="Manager Home" component={ManagerHome} />
+      <Tab.Screen name="Manager Home" component={ManagerHome} initialParams={{ handleLogout: handleLogout }}/>
       <Tab.Group mode="modal">
-        <Tab.Screen name="Add Task" component={AddTaskScreen} options={{ presentation: 'modal' }}/>
+        <Tab.Screen name="Add Task" component={AddTaskScreen} options={{ presentation: 'modal' }} initialParams={{ handleLogout: handleLogout }}/>
       </Tab.Group>
-      <Tab.Screen name="Manager Calendar" component={ManagerCalendar} />
+      <Tab.Screen name="Manager Calendar" component={ManagerCalendar} initialParams={{ handleLogout: handleLogout }}/>
     </Tab.Navigator>
   );
 };

@@ -1,12 +1,12 @@
 //React Native Imports
 import React, {useState, useEffect} from 'react'
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView} from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Touchable} from 'react-native'
 
 //AsyncStorage
 import { getUserInfo } from '../../utils/storageUtils';
 
 //Constants
-import { COLORS } from '../../constants';
+import { COLORS, baseURL } from '../../constants';
 
 //Calendar
 import {Calendar, LocalConfig} from 'react-native-calendars';
@@ -14,17 +14,39 @@ import {Calendar, LocalConfig} from 'react-native-calendars';
 //Components
 import InformationDashboard from '../../components/InformationDashboard'
 
+import axios from 'axios'
 
-const ManagerCalendar = () => {
+
+const ManagerCalendar = ({route}) => {
     const [userInfo, setUserInfo] = useState(null);
     const [dateSelected, setDateSelected] = useState(null);
+    const [markedDatesObj, setMarkedDatesObj] = useState({})
+    const { handleLogout } = route.params;
+    
     
 
-    const markedDates = {
-        '2024-05-30': { marked: true },
-        '2024-05-20': { marked: true },
-        '2024-05-25': { marked: true },
-      };
+    useEffect(() => {
+        const fetchTasksAndPopulateMarkedDates = async () => {
+          try {
+            const response = await axios.get(`${baseURL}/tasks`);
+            const tasksData = response.data;
+    
+            // Transform tasksData into markedDatesObj
+            const markedDates = {};
+            tasksData.forEach(task => {
+              const taskDate = new Date(task.dueDate); // Assuming task.dueDate is your date field
+              const formattedDate = taskDate.toISOString().split('T')[0];
+              markedDates[formattedDate] = { marked: true };
+            });
+
+            setMarkedDatesObj(markedDates);
+          } catch (error) {
+            console.error('Error fetching tasks or populating marked dates:', error);
+          }
+        };
+    
+        fetchTasksAndPopulateMarkedDates();
+      }, []);
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -44,10 +66,10 @@ const ManagerCalendar = () => {
     <>
 
         <View style={styles.header}>
-            <View style={styles.headerLeft}>
+            <TouchableOpacity style={styles.headerLeft} onPress={handleLogout}>
                 <Image source={require('../../assets/logoOnly.png')} style={styles.topLogo}/>
                 <Text style={styles.userNameText}>{userInfo.firstName}</Text>
-            </View>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.headerRight}>
                 <Image source={require('../../assets/icons/iconNotification.png')} style={styles.notIcon} />
             </TouchableOpacity>
@@ -61,11 +83,7 @@ const ManagerCalendar = () => {
             onDayPress={day => {
                 setDateSelected(day.dateString);
             }}
-            markedDates={{
-                '2024-05-30': { marked: true },
-                '2024-05-20': { marked: true },
-                '2024-05-25': { marked: true },
-            }}
+            markedDates={markedDatesObj}
             style={{
                 borderWidth: 3,
                 borderColor: COLORS.PRIMARY_COLOR_1,

@@ -13,10 +13,26 @@ import EmployeeCalendar from './EmployeeCalendar';
 //Constants Imports
 import {COLORS} from "../../constants"
 
+//AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const Tab = createBottomTabNavigator();
 
-const EmployeeHomeScreen = () => {
+const EmployeeHomeScreen = ({route}) => {
+
+  const { handleUserRole } = route.params;
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('user');
+      handleUserRole(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <Tab.Navigator 
       initialRouteName="Employee Home" 
@@ -47,9 +63,9 @@ const EmployeeHomeScreen = () => {
         },
       })}
     >
-      <Tab.Screen name="Employee Home" component={EmployeeHome} />
-        <Tab.Screen name="Employee Earnings" component={EmployeeEarnings}/>
-      <Tab.Screen name="Employee Calendar" component={EmployeeCalendar} />
+      <Tab.Screen name="Employee Home" component={EmployeeHome}  initialParams={{ handleLogout: handleLogout }}/>
+        <Tab.Screen name="Employee Earnings" component={EmployeeEarnings} initialParams={{ handleLogout: handleLogout }}/>
+      <Tab.Screen name="Employee Calendar" component={EmployeeCalendar} initialParams={{ handleLogout: handleLogout }}/>
     </Tab.Navigator>
   );
 };

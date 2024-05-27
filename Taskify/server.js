@@ -73,7 +73,6 @@ app.post('/login', async (req, res) => {
 
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
 
-    // Send the complete user object along with token and role in the response
     res.json({ token, role: user.role, user });
   } catch (error) {
     console.error('Login error:', error);
@@ -106,7 +105,6 @@ app.get('/rewards', async (req, res) => {
   }
 });
 
-// Create Task Route
 app.post('/tasks', async (req, res) => {
   try {
     const {
@@ -153,7 +151,6 @@ app.get('/tasks', async (req, res) => {
   }
 });
 
-// Fetch Tasks for a Specific User Endpoint
 app.get('/user/:id/tasks', async (req, res) => {
   try {
     const { id } = req.params;
@@ -238,7 +235,6 @@ app.get('/tasks-in-progress', async (req, res) => {
   }
 });
 
-// Fetch Finished Tasks for a Specific User Endpoint
 app.get('/api/tasks/finished/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -249,6 +245,36 @@ app.get('/api/tasks/finished/:userId', async (req, res) => {
     res.status(500).send('Error fetching finished tasks');
   }
 });
+
+app.get('/api/tasks', async (req, res) => {
+  try {
+      const tasks = await Task.find().populate('assignedUser', 'firstName lastName');
+      res.json(tasks);
+  } catch (error) {
+      console.error('Error fetching tasks:', error);
+      res.status(500).send('Error fetching tasks');
+  }
+});
+
+// app.get('/last-finished-tasks', async (req, res) => {
+//   try {
+//     const lastFinishedTasks = await Task.find({ status: 'finished' })
+//       .sort({ updatedAt: -1 })
+//       .limit(10)
+//       .populate('assignedUser', 'firstName lastName');
+
+//     const taskDetails = lastFinishedTasks.map(task => ({
+//       taskName: task.title,
+//       assignedUserName: `${task.assignedUser.firstName} ${task.assignedUser.lastName}`
+//     }));
+
+//     res.json(taskDetails);
+//   } catch (error) {
+//     console.error('Error fetching last finished tasks:', error);
+//     res.status(500).send('Error fetching last finished tasks');
+//   }
+// });
+
 
 
 // Fetch User Information Endpoint
@@ -271,6 +297,23 @@ app.get('/user/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user information:', error);
     res.status(500).send('Error fetching user information');
+  }
+});
+
+
+app.patch('/tasks/:id/update-status', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(id, { status }, { new: true });
+    if (!updatedTask) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    res.status(200).json(updatedTask);
+  } catch (error) {
+    console.error('Error updating task status:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

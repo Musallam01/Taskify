@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, FlatList } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, FlatList, Modal } from 'react-native';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/storageUtils';
 import { COLORS, baseURL } from '../../constants';
 import EmployeeInformationDashboard from '../../components/EmployeeInformationDashboard';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const EmployeeHomeScreen = () => {
+const EmployeeHomeScreen = ({route}) => {
   const [userInfo, setUserInfo] = useState({});
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [task, setTask] = useState({});
+
+  const { handleLogout } = route.params;
+  
 
   const navigation = useNavigation();
 
@@ -56,32 +62,59 @@ const EmployeeHomeScreen = () => {
   };
 
   const currentUserID = userInfo._id;
-  const filteredTasks = tasks.filter(task => task.assignedUser === currentUserID);
+  const remainingTasks = tasks.filter(task => task.assignedUser === currentUserID && task.status !== 'finished');
+  const finishedTasks = tasks.filter(task => task.assignedUser === currentUserID && task.status === 'finished');
 
-    const handleTaskPress=(task)=>{
-      navigation.navigate("EmployeeCurrentTask", {task});
-    }
+  const updateTaskStatus = (taskId, status) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task._id === taskId ? { ...task, status: status } : task
+      )
+    );
+  };
 
-    const renderItem = ({ item, index }) => {
+  const handleTaskPress = (task) => {
+    navigation.navigate("EmployeeCurrentTask", { task, updateTaskStatus });
+  };
 
-      const itemStyle = index % 2 === 0 ? styles.cardView : styles.cardViewGreen;
-      const dateStyle = index % 2 === 0 ? styles.dueDateView : styles.dueDateViewGreen
-      return (
-        <TouchableOpacity style={itemStyle} onPress={()=>handleTaskPress(item)}>
-          <View style={styles.cardTopView}>
-            <Text style={styles.titleText}>{item.title}</Text>
-            <View style={dateStyle}>
-              <Text style={styles.dueDateText}>{formatDate(item.dueDate)}</Text>
-            </View>
+  const handleFinishedPress = (taskInfo) => {
+    setModalVisible(true);
+    setTask(taskInfo)
+  };
+
+  const renderTaskItem = ({ item, index }) => {
+    const itemStyle = index % 2 === 0 ? styles.cardView : styles.cardViewGreen;
+    const dateStyle = index % 2 === 0 ? styles.dueDateView : styles.dueDateViewGreen;
+    return (
+      <TouchableOpacity style={itemStyle} onPress={() => handleTaskPress(item)}>
+        <View style={styles.cardTopView}>
+          <Text style={styles.titleText}>{item.title}</Text>
+          <View style={dateStyle}>
+            <Text style={styles.dueDateText}>{formatDate(item.dueDate)}</Text>
           </View>
-          <View>
-            <Text style={styles.descriptionText}>{item.description}</Text>
-          </View>
-          <View>
-            <Text style={styles.assignedUserText}>Task Fees: {item.requiredFees}</Text>
-          </View>
-        </TouchableOpacity>
-      
+        </View>
+        <View>
+          <Text style={styles.descriptionText}>{item.description}</Text>
+        </View>
+        <View>
+          <Text style={styles.assignedUserText}>Task Fees: {item.requiredFees}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderFinishedItem = ({ item, index }) => {
+    const itemStyle = index % 2 === 0 ? styles.cardView : styles.cardViewGreen;
+    const dateStyle = index % 2 === 0 ? styles.dueDateView : styles.dueDateViewGreen;
+    return (
+      <TouchableOpacity style={styles.finishedTaskStyle} onPress={() => handleFinishedPress(item)}>
+        <View>
+          <Text style={styles.finishedText}>
+            {item.title}
+          </Text>
+          <Text>Due Date: {formatDate(item.dueDate)}</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -90,7 +123,7 @@ const EmployeeHomeScreen = () => {
   return (
     <>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerLeft}>
+        <TouchableOpacity style={styles.headerLeft} onPress={handleLogout}>
           <Image source={require('../../assets/logoOnly.png')} style={styles.topLogo} />
           <Text style={styles.userNameText}>{userInfo.firstName}</Text>
         </TouchableOpacity>
@@ -99,25 +132,62 @@ const EmployeeHomeScreen = () => {
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.mainView}>
-        <EmployeeInformationDashboard/>
+        <EmployeeInformationDashboard />
         <View style={styles.flatListMainView}>
           <Text style={styles.yourTasksText}>Your Tasks</Text>
           <FlatList
-            data={filteredTasks}
-            renderItem={renderItem}
+            data={remainingTasks}
+            renderItem={renderTaskItem}
             keyExtractor={(item) => item._id.toString()}
             showsVerticalScrollIndicator={false}
             horizontal={true}
             ItemSeparatorComponent={ItemSeparator}
             showsHorizontalScrollIndicator={false}
+            ListEmptyComponent={<Text style={styles.emptyListText}>No Tasks Remaining</Text>}
           />
         </View>
 
         <View style={styles.lastTasksView}>
           <Image source={require('../../assets/icons/iconTasks.png')} />
-          <Text style={styles.lastTasksText}> Your Last Tasks</Text>
+          <Text style={styles.lastTasksText}> Your Last Task</Text>
         </View>
+        <FlatList
+          data={finishedTasks.reverse()}
+          renderItem={renderFinishedItem}
+          keyExtractor={(item) => item._id.toString()}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={ItemSeparator}
+          showsHorizontalScrollIndicator={true}
+          style={styles.finishedFlatList}
+          ListEmptyComponent={<Text style={styles.emptyListText}>No finished tasks</Text>}
+        />
       </ScrollView>
+      <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => {
+        setModalVisible(!modalVisible);
+      }}
+      >
+
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>{task.title}</Text>
+            <Text style={styles.modalContentText}>Assigned Due Date:{formatDate(task.dueDate)}</Text>
+            <Text style={styles.modalContentText}>Assigned on: {formatDate(task.creationDate)}</Text>
+            <Text style={styles.modalContentText}>Customer's Phone Number: 0{task.CustomerPhoneNumber}</Text>
+            <Text style={styles.modalContentText}>Fees Collected: {task.requiredFees}</Text>
+            <Text style={[styles.modalContentText, {marginBottom: 30}]}>Location: Amman, Al Rabieh, Jebal Atlas St.</Text>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setModalVisible(!modalVisible)}>
+              <Text style={styles.textStyle}>Close Task Record</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+      </Modal>
     </>
   );
 };
@@ -159,7 +229,7 @@ const styles = StyleSheet.create({
     weight: 27
   },
   flatListMainView: {
-    marginTop: 35
+    marginTop: 50
   },
   yourTasksText: {
     fontSize: 20,
@@ -193,7 +263,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 15
   },
-  dueDateViewGreen:{
+  dueDateViewGreen: {
     backgroundColor: COLORS.PRIMARY_COLOR_2,
     paddingVertical: 5,
     paddingHorizontal: 15,
@@ -210,13 +280,80 @@ const styles = StyleSheet.create({
   assignedUserText: {
     fontSize: 15
   },
-  lastTasksView:{
+  lastTasksView: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 30
+    marginTop: 60
   },
-  lastTasksText:{
+  lastTasksText: {
     fontSize: 24,
-    fontWeight:"600"
-  }
-});
+    fontWeight: "600"
+  },
+  finishedFlatList:{
+    width: "100%",
+  },
+  finishedTaskStyle:{
+    backgroundColor: COLORS.SECONDARY_COLOR_2,
+    borderWidth: 2,
+    borderRadius: 15,
+    height: 65,
+    marginTop: 20,
+    padding: 20,
+    width: 349,
+    borderColor: COLORS.PRIMARY_COLOR_1,
+    justifyContent: "center"
+  },
+  finishedText:{
+    fontSize: 20,
+    fontWeight:"500"
+  },
+  emptyListText:{
+    fontSize: 20,
+    alignSelf: "center",
+    marginTop: 20,
+    fontWeight: "bold"
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+    backgroundColor: "#00000070"
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: COLORS.SECONDARY_COLOR_1,
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 3,
+    borderColor: COLORS.PRIMARY_COLOR_1
+  },
+  buttonClose: {
+    backgroundColor: COLORS.PRIMARY_COLOR_2,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 15,
+  },
+  textStyle: {
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  modalText: {
+    textAlign: 'center',
+    fontSize: 25,
+    marginBottom: 30
+  },
+  modalContentText:{
+    fontSize: 20,
+    marginTop: 20
+    }
+})

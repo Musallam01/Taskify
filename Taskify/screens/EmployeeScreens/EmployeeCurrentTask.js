@@ -6,11 +6,11 @@ import axios from 'axios';
 
 const EmployeeCurrentTask = ({ route, navigation }) => {
   const [taskStarted, setTaskStarted] = useState(false);
-  const [swipeEnabled, setSwipeEnabled] = useState(false);
-  const { task } = route.params;
+  const [swipeEnabled, setSwipeEnabled] = useState(true);
+  const [taskStatus, setTaskStatus] = useState('');
+  const { task, updateTaskStatus } = route.params;
 
   useEffect(() => {
-    // Check the task status and update component state accordingly
     if (task.status === 'in-progress') {
       setTaskStarted(true);
       setSwipeEnabled(false);
@@ -18,6 +18,7 @@ const EmployeeCurrentTask = ({ route, navigation }) => {
       setTaskStarted(false);
       setSwipeEnabled(true);
     }
+    setTaskStatus(task.status);
   }, [task.status]);
 
   const formatDate = (dateString) => {
@@ -28,73 +29,81 @@ const EmployeeCurrentTask = ({ route, navigation }) => {
   };
 
   const handleFinishTask = async () => {
-    await updateTaskStatus('finished');
-    setTaskStarted(false);
-    setSwipeEnabled(true);
-    navigation.goBack();
-  };
+    const url = `${baseURL}/tasks/${task._id}/update-status`;
+    console.log('Finishing task at URL:', url);
+    try {
+      const response = await axios.patch(url, { status: 'finished' });
+      if (response.status === 200) {
+        setTaskStatus('finished');
+        updateTaskStatus(task._id, 'finished');
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('Error finishing task:', error);
+    }
+  };  
 
   const startTask = async () => {
-    await updateTaskStatus('in-progress');
-    setTaskStarted(true);
-    setSwipeEnabled(false);
-    console.log("The task has started");
-  };
-
-  const updateTaskStatus = async (status) => {
+    const url = `${baseURL}/tasks/${task._id}/update-status`;
+    console.log('Starting task at URL:', url);
     try {
-      await axios.post(`${baseURL}/api/tasks/${task._id}/update-status`, { status });
+      const response = await axios.patch(url, { status: 'in-progress' });
+      if (response.status === 200) {
+        setTaskStarted(true);
+        setSwipeEnabled(false);
+        setTaskStatus('in-progress');
+        updateTaskStatus(task._id, 'in-progress');
+      }
     } catch (error) {
-      console.error('Error updating task status:', error);
+      console.error('Error starting task:', error);
     }
   };
+  
 
   return (
-    <>
-      <View style={styles.mainView}>
-        <View style={styles.topView}>
-          <Text style={styles.titleText}>{task.title}</Text>
-          <View style={styles.line} />
-          <Text style={styles.descriptionText}>{task.description}</Text>
-          <View style={styles.line} />
-          <Text style={styles.dueOnText}>Due on <Text style={styles.dateText}>{formatDate(task.dueDate)}</Text></Text>
+    <View style={styles.mainView}>
+      <View style={styles.topView}>
+        <Text style={styles.titleText}>{task.title}</Text>
+        <View style={styles.line} />
+        <Text style={styles.descriptionText}>{task.description}</Text>
+        <View style={styles.line} />
+        <Text style={styles.dueOnText}>Due on <Text style={styles.dateText}>{formatDate(task.dueDate)}</Text></Text>
+      </View>
+      <View style={styles.botView}>
+        <Text style={{ alignSelf: "flex-start", marginBottom: 40, fontSize: 22 }}>Assigned by: {task.assignedBy}</Text>
+        <Text style={{ alignSelf: "flex-end", marginBottom: 40, fontSize: 22 }}>Fees: JOD {task.requiredFees}</Text>
+        <Text style={{ alignSelf: "center", marginBottom: 40, fontSize: 22 }}>{task.customerAddress}</Text>
+        <Text style={{ alignSelf: "flex-start", marginBottom: 40, fontSize: 22 }}>0{task.customerPhoneNumber}</Text>
+        <View>
+          <SwipeButton
+            thumbIconBackgroundColor={COLORS.PRIMARY_COLOR_2}
+            thumbIconComponent={() => (
+              <View style={styles.customThumb}>
+                <Image
+                  source={require('../../assets/icons/iconSwipeRight.png')}
+                />
+              </View>
+            )}
+            railBackgroundColor={COLORS.SECONDARY_COLOR_2}
+            railBorderColor={COLORS.SECONDARY_COLOR_1}
+            height={70}
+            onSwipeSuccess={startTask}
+            disabled={!swipeEnabled}
+            title="Swipe to start Task"
+            titleFontSize={18}
+            railStyles={{ backgroundColor: COLORS.PRIMARY_COLOR_2, height: 70 }}
+          />
         </View>
-        <View style={styles.botView}>
-          <Text style={{ alignSelf: "flex-start", marginBottom: 40, fontSize: 22 }}>Assigned by: {task.assignedBy}</Text>
-          <Text style={{ alignSelf: "flex-end", marginBottom: 40, fontSize: 22 }}>Fees: JOD {task.requiredFees}</Text>
-          <Text style={{ alignSelf: "center", marginBottom: 40, fontSize: 22 }}>{task.customerAddress}</Text>
-          <Text style={{ alignSelf: "flex-start", marginBottom: 40, fontSize: 22 }}>0{task.customerPhoneNumber}</Text>
-          <View>
-            <SwipeButton
-              thumbIconBackgroundColor={COLORS.PRIMARY_COLOR_2}
-              thumbIconComponent={() => (
-                <View style={styles.customThumb}>
-                  <Image
-                    source={require('../../assets/icons/iconSwipeRight.png')}
-                  />
-                </View>
-              )}
-              railBackgroundColor={COLORS.SECONDARY_COLOR_2}
-              railBorderColor={COLORS.SECONDARY_COLOR_1}
-              height={70}
-              onSwipeSuccess={startTask}
-              disabled={!swipeEnabled}
-              title="Swipe to start Task"
-              titleFontSize={18}
-              railStyles={{ backgroundColor: COLORS.PRIMARY_COLOR_2, height: 70 }}
-            />
-          </View>
-          <View style={styles.bottomButtonsView}>
-            <TouchableOpacity style={styles.finishTaskView} onPress={handleFinishTask} disabled={!taskStarted}>
-              <Text style={styles.finishTaskText}>Finish Task</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.delayTaskView} onPress={() => navigation.goBack()} disabled={!taskStarted}>
-              <Text style={styles.delayTaskText}>Delay Task</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.bottomButtonsView}>
+          <TouchableOpacity style={styles.finishTaskView} onPress={handleFinishTask} disabled={!taskStarted}>
+            <Text style={styles.finishTaskText}>Finish Task</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.delayTaskView} onPress={() => navigation.goBack()} disabled={!taskStarted}>
+            <Text style={styles.delayTaskText}>Delay Task</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </>
+    </View>
   );
 };
 

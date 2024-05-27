@@ -21,7 +21,7 @@ import axios from 'axios';
 // Toast imports
 import Toast from 'react-native-toast-message';
 
-const AddTaskScreen = () => {
+const AddTaskScreen = ({route}) => {
   const [userInfo, setUserInfo] = useState(null);
   const [employee, setEmployee] = useState('Specify Later');
   const [employeeList, setEmployeeList] = useState([]);
@@ -36,6 +36,8 @@ const AddTaskScreen = () => {
   const [taskType, setTaskType] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [requiredFees, setRequiredFees] = useState('');
+
+  const { handleLogout } = route.params;
 
   const navigation = useNavigation();
 
@@ -161,7 +163,7 @@ const AddTaskScreen = () => {
     <>
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerLeft}>
-          <Image source={require('../../assets/logoOnly.png')} style={styles.topLogo} />
+          <Image source={require('../../assets/logoOnly.png')} style={styles.topLogo} onPress={handleLogout}/>
           <Text style={styles.userNameText}>{userInfo.firstName}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.headerRight}>

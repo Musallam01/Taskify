@@ -1,38 +1,56 @@
-//React Native Imports
-import React, {useState, useEffect} from 'react'
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, FlatList} from 'react-native'
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-//AsyncStorage
+import axios from 'axios';
+import { COLORS, baseURL } from '../../constants';
 import { getUserInfo } from '../../utils/storageUtils';
 
-//Constants
-import { COLORS } from '../../constants';
+const ManagerHome = ({ route }) => {
+  const [userInfo, setUserInfo] = useState(null);
+  const [latestTasks, setLatestTasks] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
-
-
-const ManagerHome = () => {
-    const [userInfo, setUserInfo] = useState(null);
-
-    const navigation = useNavigation();
-
-    useEffect(() => {
-        const fetchUserInfo = async () => {
-            const user = await getUserInfo();
-            setUserInfo(user);
-        };
-        
-        fetchUserInfo();
-    }, []);
+  const { handleLogout } = route.params;
+  const navigation = useNavigation();
+  
     
-    if (!userInfo) {
-        return <Text>Loading...</Text>;
-    }
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const user = await getUserInfo();
+      setUserInfo(user);
+    };
+    fetchUserInfo();
+  }, []);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+        try {
+            const response = await axios.get(`${baseURL}/api/tasks`);
+            setTasks(response.data);
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        }
+    };
+    fetchTasks();
+}, []);
+
+  const finishedTasks = tasks.filter(task => task.status === 'finished');
+
+  if (!userInfo) {
+    return <Text>Loading...</Text>;
+  }
+
+  const renderLatestTask = ({ item }) => (
+    <View style={styles.latestTaskItem}>
+      <Text style={styles.latestTaskText}>{item.assignedUser.firstName}{item.assignedUser.lastName} - {item.title}</Text>
+    </View>
+  );
+
 
   return (
     <>
         <View style={styles.header}>
-            <TouchableOpacity style={styles.headerLeft}>
+            <TouchableOpacity style={styles.headerLeft} onPress={handleLogout}>
                 <Image source={require('../../assets/logoOnly.png')} style={styles.topLogo}/>
                 <Text style={styles.userNameText}>{userInfo.firstName}</Text>
             </TouchableOpacity>
@@ -48,8 +66,8 @@ const ManagerHome = () => {
                         <Image source={require('../../assets/icons/iconTasks.png')} />
                         <Text style={styles.buttonsTexts}>Tasks</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.employeesButton}>
-                        <Image source={require('../../assets/icons/iconEmployees.png')} />
+                    <TouchableOpacity style={styles.employeesButton} onPress={()=> navigation.navigate("ManagerAllEmployees")}>
+                        <Image source={require('../../assets/icons/iconEmployees.png')}/>
                         <Text style={styles.buttonsTexts}>Employees</Text>
                     </TouchableOpacity>
                 </View>
@@ -63,14 +81,18 @@ const ManagerHome = () => {
                         <Text style={styles.buttonsTexts}>Reviews</Text>
                     </TouchableOpacity>
                 </View>
-            </View>
-            <View style={styles.activitesView}>
+                <View style={styles.activitesView}>
                 <View style={styles.activitiesTitleView}>
                     <Image source={require('../../assets/icons/iconActivities.png')} />
                     <Text style={styles.activitiesTitleText}> Latest Activities</Text>
                 </View>
-
-                <FlatList />
+                <FlatList
+                    data={finishedTasks.slice(0, 10)}
+                    renderItem={renderLatestTask}
+                    keyExtractor={(item) => item._id ? item._id.toString() : ''}
+                    showsVerticalScrollIndicator={false}
+                />
+                </View>
             </View>
         </ScrollView>
     </>
@@ -192,4 +214,18 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: "700"
     },
+    latestTaskItem:{
+        backgroundColor: COLORS.SECONDARY_COLOR_2,
+        borderWidth: 2,
+        borderRadius: 15,
+        height: 65,
+        marginTop: 20,
+        padding: 20,
+        width: 349,
+        borderColor: COLORS.PRIMARY_COLOR_1,
+        justifyContent: "center"
+    },
+    latestTaskText:{
+        fontSize: 20
+    }
 })

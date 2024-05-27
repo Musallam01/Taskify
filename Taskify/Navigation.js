@@ -40,7 +40,7 @@ const Navigation = () => {
           userRole === 'manager' ? (
             <>
               {/* The Manager's Stack */}
-              <Stack.Screen name="ManagerStack" component={ManagerStack} />
+              <Stack.Screen name="ManagerStack" component={ManagerStack} initialParams={{ handleUserRole: handleUserRole}}/>
               <Stack.Screen name="ManagerHomeScreen" component={ManagerHomeScreen} />
               <Stack.Screen name="ManagerAllEmployees" component={ManagerAllEmployees} />
               <Stack.Screen name="ManagerAllTasks" component={ManagerAllTasks} />
@@ -54,7 +54,7 @@ const Navigation = () => {
           ) : (
             <>
               {/* The Employee's Stack */}
-              <Stack.Screen name="EmployeeStack" component={EmployeeStack} />
+              <Stack.Screen name="EmployeeStack" component={EmployeeStack} initialParams={{ handleUserRole: handleUserRole}}/>
               <Stack.Screen name="EmployeeHome" component={EmployeeHome} />
               <Stack.Screen name="EmployeeEarnings" component={EmployeeEarnings} />
               <Stack.Screen name="EmployeeCalendar" component={EmployeeCalendar} />
@@ -65,7 +65,7 @@ const Navigation = () => {
           )
         ) : (
           <Stack.Screen name="Login">
-            {/* The Log In Screen that is displayed when the application is first launched */}
+            {/* When Taskify is first launched */}
             {(props) => <LoginScreen {...props} handleUserRole={handleUserRole} />}
           </Stack.Screen>
         )}

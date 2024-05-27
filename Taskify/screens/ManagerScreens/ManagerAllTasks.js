@@ -60,7 +60,7 @@ const ManagerAllTasks = () => {
     <View style={{ padding: 10 }}>
       <View style={styles.headerView}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text>Back</Text>
+          <Image style={{right: 25}} source={require('../../assets/icons/iconGoBack.png')}/>
         </TouchableOpacity>
         <Image source={require('../../assets/logoOnly.png')} style={styles.logo} />
         <View>
@@ -82,19 +82,23 @@ const ManagerAllTasks = () => {
     }
   };
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     const assignedUser = employees[item.assignedUser];
+    const itemStyle = index % 2 === 0 ? styles.cardView : styles.cardViewGreen;
+    const dateStyle = index % 2 === 0 ? styles.dueDateView : styles.dueDateViewGreen;
+    const lineStyle = index % 2 === 0 ? styles.line : styles.lineGreen
+    const circleStyle = index % 2 === 0 ? styles.circle : styles.circleGreen
 
     return (
       <TouchableOpacity style={styles.itemView}>
         <View style={styles.lineView}>
-          <View style={styles.circle} />
-          <View style={styles.line} />
+          <View style={circleStyle} />
+          <View style={lineStyle} />
         </View>
-        <View style={styles.cardView}>
+        <View style={itemStyle}>
           <View style={styles.cardTopView}>
             <Text style={styles.titleText}>{item.title}</Text>
-            <View style={styles.dueDateView}>
+            <View style={dateStyle}>
               <Text style={styles.dueDateText}>{formatDate(item.dueDate)}</Text>
             </View>
           </View>
@@ -165,7 +169,17 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 3,
     borderColor: COLORS.PRIMARY_COLOR_1,
-    padding: 10
+    padding: 10,
+    justifyContent: "space-between",
+  },
+  cardViewGreen:{
+    backgroundColor: `${COLORS.PRIMARY_COLOR_2}60`,
+    width: "90%",
+    borderRadius: 15,
+    borderWidth: 3,
+    borderColor: COLORS.PRIMARY_COLOR_2,
+    padding: 10,
+    justifyContent: "space-between",
   },
   lineView: {
     alignItems: "center"
@@ -174,6 +188,13 @@ const styles = StyleSheet.create({
     width: 4,
     height: 125,
     backgroundColor: COLORS.PRIMARY_COLOR_1,
+    marginRight: 10,
+    borderRadius: 15
+  },
+  lineGreen: {
+    width: 4,
+    height: 125,
+    backgroundColor: COLORS.PRIMARY_COLOR_2,
     marginRight: 10,
     borderRadius: 15
   },
@@ -186,23 +207,38 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 3,
   },
+  circleGreen: {
+    width: 20,
+    height: 20,
+    borderRadius: 100,
+    borderWidth: 3,
+    borderColor: COLORS.PRIMARY_COLOR_2,
+    marginRight: 10,
+    marginBottom: 3,
+  },
   cardTopView: {
     flexDirection: "row",
     justifyContent: "space-between"
   },
   dueDateView: {
-    backgroundColor: COLORS.PRIMARY_COLOR,
+    backgroundColor: COLORS.PRIMARY_COLOR_1,
     paddingVertical: 5,
     paddingHorizontal: 15,
     borderRadius: 15
   },
-  titleText:{
+  dueDateViewGreen:{
+    backgroundColor: COLORS.PRIMARY_COLOR_2,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 15
+  },
+    titleText:{
     fontSize: 15,
     fontWeight: "600"
   },
   descriptionText:{
     fontSize: 15,
-    marginVertical: 20
+    marginVertical: 5
   },
   assignedUserText:{
     fontSize: 15
